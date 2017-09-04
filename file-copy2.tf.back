@@ -1,0 +1,17 @@
+resource "null_resource" "web02" {
+  connection {
+    host = "${aws_instance.web02.public_ip}"
+    user = "ubuntu"
+    timeout = "5m"
+    private_key = "${file(var.WEB_PRIVATE_KEY_PATH)}"
+  }
+provisioner "file" {
+        source = "script/script.sh"
+        destination = "/tmp/script.sh"
+    }
+provisioner "remote-exec" {
+    inline = [
+    "sudo sh /tmp/script.sh"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+resource "aws_instance" "web03" {
+    ami = "ami-d7b9a2b1"
+    instance_type = "${var.INSTANCE_TYPE}"
+    subnet_id = "${aws_subnet.public_a.id}"
+    vpc_security_group_ids = ["${aws_security_group.security_group_bastion.id}"]
+    key_name = "${var.WEB_KEY_NAME}"
+    associate_public_ip_address = false
+    tags {
+        Name = "${var.ENVIRONMENT}_WEB03"
+    }
+
+    root_block_device {
+    volume_type           = "gp2"
+    volume_size           = 15
+    delete_on_termination = true
+
+   }
+
+}
+
+resource "null_resource" "web03" {
+  connection {
+    host = "${aws_instance.web03.public_ip}"
+    user = "ec2-user"
+    timeout = "5m"
+    private_key = "${file(var.WEB_PRIVATE_KEY_PATH)}"
+  }
+provisioner "file" {
+        source = "script/script.sh"
+        destination = "/tmp/script.sh"
+    }
+provisioner "remote-exec" {
+    inline = [
+    "sudo sh /tmp/script.sh"
+    ]
+  }
+}
